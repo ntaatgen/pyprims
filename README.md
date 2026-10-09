@@ -15,6 +15,16 @@ python -m pyprims batch examples/testbatch.bprims -o out.dat --seed 1
 python -m pyprims convert mymodel.prims          # writes mymodel.py
 ```
 
+## Tutorial
+
+The folder `tutorial` has a PRIMs tutorial as Jupyter notebooks: Unit 1
+(introduction: the structure of a model, running and inspecting it,
+production compilation, transfer, batch runs), Unit 2 (variable binding and
+tasks with several skills), Unit 3 (operator selection, learning skill–operator
+associations, far transfer), and a reference notebook with all parameters and
+script functions. Each unit folder contains the model files it uses and an
+assignment. See `tutorial/README.md`.
+
 ## Models in Python
 
 Existing `.prims` files load directly. Models can also be written in Python;

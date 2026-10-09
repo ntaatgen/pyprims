@@ -1,0 +1,98 @@
+// Semantic, but now with also answers questions about attributes
+
+define task semantic {
+  initial-skills: (read)
+  default-activation: 1.0 
+  ol: t
+  rt: -2.0
+  lf: 0.2
+  egs: 0.05
+  retrieval-reinforces: t
+}
+
+define skill attempt-retrieve {
+	operator start-retrieve {
+		WM2 <> nil
+		WM3 <> nil
+		RT1 = nil
+	==>
+		*attribute-fact-type -> RT1
+		WM3 -> RT2
+		WM2 -> RT3
+	}
+	
+	operator on-success {
+		RT1 = *attribute-fact-type
+	==>
+		*retrieve-success-skill -> G1
+	}
+	
+	operator on-fail {
+		RT1 = error
+	==>
+		*retrieve-fail-skill -> G1
+	}
+}
+
+
+define skill alt-respond {
+	operator carry-out-action {
+		G1 <> nil // Operators require at least one condition
+		==>
+		*alt-respond-action -> AC1
+		*alt-respond-arg -> AC2
+		nil -> G1
+	}
+}
+
+define action say {
+  latency: 0.3
+  noise: 0.1
+  distribution: uniform
+  output: Saying
+}
+
+define facts {
+
+    (sem1  property  lion  mammal)
+    (sem2  property  mammal  animal)
+    (sem3  property  animal living-thing)
+    (sem4  property  plant living-thing)
+    (sem5  property  tulip plant)
+    (sem6  property  bird animal)
+    (sem7  property  tweety bird)
+    (sem8  property  robin bird)
+	(sem11 has-attribute bird flies)
+	(sem12 has-attribute living-thing cells)
+	(sem13 has-attribute tulip flower)
+	(sem14 has-attribute bird eggs)
+	(sem15 has-attribute animal blood)
+	(sem16 has-attribute plant roots)
+}
+
+/// Assignment: Fill in the XXX's in the script
+
+define script {
+	add-binding("next-skill",XXX)
+	add-binding("fact-type",XXX)
+	add-binding("attribute-fact-type",XXX)
+	add-binding("final-action-skill",XXX)
+	add-binding("fail-skill",XXX)
+	add-binding("respond-action",XXX)
+	add-binding("respond-arg",XXX)
+	add-binding("alt-respond-action",XXX)
+	add-binding("alt-respond-arg",XXX)
+	add-binding("sub-skill",XXX)
+	add-binding("retrieve-success-skill",XXX)
+	add-binding("retrieve-fail-skill",XXX)
+    pairs = [["lion","flies","no"], ["robin","flies","yes"], ["mammal","cells","yes"], ["plant","roots","yes"], ["lion","living-thing","yes"], ["tulip","animal","no"], ["mammal","living-thing","yes"], ["lion","plant","no"]]
+    pairno = random(length(pairs))
+    pair = pairs[pairno]
+    print("Has",pair[0],"the attribute",pair[1],"?")
+    screen(pair[0],pair[1])
+    run-until-action("say")
+    issue-reward()
+    trial-end()
+}
+
+
