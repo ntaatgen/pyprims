@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyprims"
+version = "0.1.0"
+description = "Python implementation of the PRIMs cognitive architecture (port of the Swift version)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Niels Taatgen" }]
+dependencies = []
+keywords = ["cognitive architecture", "cognitive modeling", "PRIMs", "ACT-R", "skill transfer"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/ntaatgen/pyprims"
+"PRIMs (Swift)" = "https://github.com/ntaatgen/PRIMs"
+"PRIMs tutorial" = "https://github.com/ntaatgen/PRIMs-Tutorial"
+
+[project.optional-dependencies]
+test = ["pytest"]
+embedding = ["numpy"]
+notebook = ["matplotlib", "numpy", "pandas", "ipywidgets>=8", "jupyterlab"]
+
+[project.scripts]
+pyprims = "pyprims.__main__:main"
+
+[tool.setuptools]
+packages = ["pyprims", "pyprims.notebook"]

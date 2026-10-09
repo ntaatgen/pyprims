@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local environments and tools
+anaconda_projects/
+.venv/
+venv/
+
+# Model output and saved model images
+*.pybrain
+out.dat
+
+# macOS
+.DS_Store
+
+# Local backups
+backup-*/
