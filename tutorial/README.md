@@ -11,7 +11,7 @@ You need Python 3.10 or later. Install pyprims with its notebook extras
 (matplotlib, numpy, pandas, ipywidgets, jupyterlab):
 
 ```bash
-pip install "pyprims[notebook] @ git+https://github.com/ntaatgen/pyprims"
+pip install "pyprims[notebook]"
 ```
 
 or, in a clone of this repository, `pip install -e ".[notebook]"` from its

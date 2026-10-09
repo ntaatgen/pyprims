@@ -4,10 +4,10 @@ A Python implementation of the PRIMs cognitive architecture (Taatgen, 2013,
 *Psychological Review*, 120, 439–471). It is a port of the Swift version and
 runs on any platform with Python 3.10 or later. The symbolic core needs only
 the standard library; the embedded representation needs numpy
-(`pip install -e ".[embedding]"`).
+(`pip install "pyprims[embedding]"`).
 
 ```bash
-pip install "pyprims[notebook] @ git+https://github.com/ntaatgen/pyprims"   # install from GitHub
+pip install "pyprims[notebook]"     # from PyPI
 pip install -e ".[notebook,test]"   # or, in a clone of the repository
 python -m pytest tests           # 53 tests
 python -m pyprims run examples/count.prims -n 1 --trace 3
@@ -91,7 +91,7 @@ widget dashboard with the Swift buttons. `examples/pyprims_in_jupyter.ipynb`
 walks through all of it.
 
 ```bash
-pip install -e ".[notebook]"     # matplotlib, numpy, pandas, ipywidgets, jupyterlab
+pip install "pyprims[notebook]"     # matplotlib, numpy, pandas, ipywidgets, jupyterlab
 ```
 
 ```python
