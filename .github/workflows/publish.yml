@@ -1,0 +1,69 @@
+# Publish pyprims to PyPI when a release is published on GitHub.
+#
+# Uses PyPI "trusted publishing": no API token is stored anywhere. On PyPI,
+# the (pending) publisher must be: project pyprims, owner ntaatgen,
+# repository pyprims, workflow publish.yml, environment pypi.
+#
+# To release: set `version` in pyproject.toml (e.g. 0.2.0), commit and push,
+# then on GitHub create a release with tag v0.2.0.
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:          # also allows a manual run from the Actions tab
+
+jobs:
+  build:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check that the release tag matches the version in pyproject.toml
+        if: github.event_name == 'release'
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::Release tag $GITHUB_REF_NAME does not match version $VERSION in pyproject.toml"
+            exit 1
+          fi
+
+      - name: Run the tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test,embedding]" pandas matplotlib
+          python -m pytest -q tests
+
+      - name: Build the package
+        run: |
+          python -m pip install build
+          python -m build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Upload to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pyprims/
+    permissions:
+      id-token: write         # needed for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
