@@ -65,6 +65,16 @@ class ScriptAPI:
     def arg(self):
         return self.model.arg
 
+    @property
+    def state(self):
+        """A dictionary for the script's own bookkeeping (stimulus lists, counters, ...).
+
+        It belongs to the task and survives from trial to trial, so the script and
+        the action functions (``@task.action_function``) can share it.  Loading
+        the task again, or a fresh model, starts with an empty one.
+        """
+        return self.model.scenario.state
+
     # ================================================================ running
     def run_step(self):
         m = self.model

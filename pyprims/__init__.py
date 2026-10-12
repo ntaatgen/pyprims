@@ -19,4 +19,4 @@ from .dsl import Task, load_task, parse_prims, ParseError
 from .batch import run_batch, run_trials
 
 __all__ = ["Model", "Task", "load_task", "parse_prims", "run_batch", "run_trials", "ParseError", "DataLine"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"

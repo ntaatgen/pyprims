@@ -35,6 +35,8 @@ class Scenario:
     current_input: dict = field(default_factory=dict)
     script: object = None          # callable(m)
     init_script: object = None     # callable(m)
+    action_functions: dict = field(default_factory=dict)   # action name -> callable(m, *args)
+    state: dict = field(default_factory=dict)              # the script's own state (m.state)
 
     @property
     def input_mapping_for_trace(self):

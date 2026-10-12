@@ -208,3 +208,104 @@ def test_stuck_model_raises():
     from pyprims.script_api import ModelStuck
     with pytest.raises(ModelStuck):
         m.run(1)
+
+
+# ------------------------------------------------------------------ action functions
+def _probe_task(name="probe", answer="yes", latency=None):
+    """A task whose model asks the environment a question with an action."""
+    task = Task(name, initial_skills=["probe"], default_activation=1.0)
+    sk = task.skill("probe")
+    sk.operator("ask", """
+        V1 = question
+        V2 = nil
+    ==>
+        ask -> AC1
+        V1 -> AC2
+        please -> AC3
+    """)
+    sk.operator("say-answer", """
+        V2 <> nil
+    ==>
+        say -> AC1
+        V2 -> AC2
+    """)
+    task.action("ask", latency=0.2)
+    task.action("say", latency=0.3)
+
+    @task.action_function
+    def ask(m, *args):
+        m.state.setdefault("calls", []).append(args)
+        m.screen("question", answer)
+        return latency
+
+    @task.script
+    def script(m):
+        m.screen("question")
+        m.run_until_action("say")
+        m.state["trials"] = m.state.get("trials", 0) + 1
+        m.trial_end()
+    return task
+
+
+def test_action_function_gets_arguments_and_changes_screen():
+    m = Model(seed=1)
+    m.load(_probe_task())
+    m.run(2)
+    said = [d for d in m.output_data if d.event_type == "action" and d.p1 == "say"]
+    assert said and said[0].p2 == "yes"
+    state = m.scenario.state
+    assert state["calls"] == [("question", "please")] * 2
+    assert state["trials"] == 2
+
+
+def test_action_function_can_set_latency():
+    def say_time(latency):
+        m = Model(seed=1)
+        m.load(_probe_task(latency=latency))
+        m.run(1)
+        ask = [d for d in m.output_data if d.event_type == "action" and d.p1 == "ask"][0]
+        say = [d for d in m.output_data if d.event_type == "action" and d.p1 == "say"][0]
+        return ask.time, say.time
+    ask_default, say_default = say_time(None)
+    ask_slow, say_slow = say_time(1.2)
+    assert ask_default < ask_slow                   # the data line records the action's end time
+    assert say_slow - say_default == pytest.approx(1.0, abs=0.01)     # operator latencies shift a little with time
+
+
+def test_action_functions_belong_to_their_task():
+    m = Model(seed=1)
+    m.load(_probe_task("first", answer="one"))
+    m.load(_probe_task("second", answer="two"))
+    m.run(1)
+    assert [d.p2 for d in m.output_data if d.p1 == "say"] == ["two"]
+    m.switch_task("first")
+    m.run(1)
+    assert [d.p2 for d in m.output_data if d.p1 == "say"] == ["one"]
+    assert "trials" in m.scenario.state and m.scenario.state["trials"] == 1
+
+
+def test_action_function_name_matches_hyphenated_action():
+    task = Task("hyphen", initial_skills=["k"], default_activation=1.0)
+    task.skill("k").operator("press", """
+        V1 = go
+    ==>
+        press-key -> AC1
+        space -> AC2
+    """)
+    seen = []
+
+    @task.action_function
+    def press_key(m, key):
+        seen.append(key)
+        m.screen("done")
+
+    @task.script
+    def script(m):
+        m.screen("go")
+        m.run_until_action("press-key")
+        m.trial_end()
+
+    m = Model(seed=1)
+    m.load(task)
+    m.run(1)
+    assert seen == ["space"]

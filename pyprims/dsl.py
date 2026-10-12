@@ -148,6 +148,12 @@ class ScriptDef:
     source: str | None = None   # original PRIMs script text, if converted
 
 
+@dataclass
+class ActionFunctionDef:
+    name: str
+    func: object
+
+
 # ====================================================================== Task
 class Task:
     """A PRIMs task definition (one .prims file)."""
@@ -208,6 +214,31 @@ class Task:
             return f
         return deco(func) if func is not None else deco
 
+    def action_function(self, func=None, *, name=None):
+        """Register a Python function that is called when the model takes an action.
+
+        The function is called as ``func(m, *args)`` when an operator puts the
+        action's name in AC1: ``m`` is the same object scripts receive, and
+        ``args`` are the values of AC2, AC3, ... as strings.  It can change the
+        screen (``m.screen(...)``), keep track of the experiment in ``m.state``,
+        and so on.  If it returns a number, that number is the latency of the
+        action in seconds, instead of the latency defined with ``task.action``.
+
+        The action is found by the function's name, with ``-`` in the action
+        name read as ``_`` (``press_key`` handles ``press-key``), or by ``name=``::
+
+            @task.action_function
+            def look(m, *args):
+                m.screen("pattern", m.state["stimulus"], "cross")
+
+        Action functions belong to the task, so two tasks can each handle an
+        action with the same name in their own way.
+        """
+        def deco(f):
+            self.defs.append(ActionFunctionDef(name or f.__name__, f))
+            return f
+        return deco(func) if func is not None else deco
+
     def init_script(self, func=None, *, source=None):
         def deco(f):
             self.defs.append(ScriptDef(f, init=True, source=source))
@@ -230,6 +261,8 @@ class Task:
                 _install_visual(m, d, task_number)
             elif isinstance(d, ActionDef):
                 _install_action(m, d)
+            elif isinstance(d, ActionFunctionDef):
+                m.scenario.action_functions[action_function_key(d.name)] = d.func
             elif isinstance(d, SjiDef):
                 _install_sji(m, d)
             elif isinstance(d, ScriptDef):
@@ -464,6 +497,11 @@ def _install_visual(m, d: VisualDef, task_number: int):
                 chunk.set_slot(f"slot{n}", v)
         m.action.visicon[chunk.name] = chunk
         chunk.defined_in = [task_number]
+
+
+def action_function_key(name: str) -> str:
+    """Action names and Python function names meet halfway: ``press-key`` = ``press_key``."""
+    return name.replace("-", "_")
 
 
 def _install_action(m, d: ActionDef):

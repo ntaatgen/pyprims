@@ -209,7 +209,22 @@ class Action:
         p1 = None if p1 is None else describe(p1)
         p2 = None if p2 is None else describe(p2)
         inst = self.actions.get(ac)
-        if ac == "wait":
+        func = m.scenario.action_functions.get(ac.replace("-", "_")) if m.scenario is not None else None
+        func_latency = None
+        if func is not None:
+            from .script_api import ScriptAPI
+            args = []
+            idx = 2
+            while f"slot{idx}" in ac_chunk.slotvals:
+                args.append(describe(ac_chunk.slotvals[f"slot{idx}"]))
+                idx += 1
+            result = func(ScriptAPI(m), *args)
+            if isinstance(result, (int, float)) and not isinstance(result, bool):
+                func_latency = max(0.0, float(result))
+        if func_latency is not None:
+            latency = func_latency
+            m.add_to_trace(f"{ac} {p1 or ''} {p2 or ''} (latency = {latency:.3f})", 2)
+        elif ac == "wait":
             m.add_to_trace(f"Waiting (latency = {latency:.3f})", 2)
             latency = 0.05
             if m.scenario.next_event_time is not None:
